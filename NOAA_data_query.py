@@ -4,7 +4,8 @@ import pandas as pd
 from datetime import datetime as dt
 import time
 
-token = "nvnYOTlhKTtqfZCLuXNQnYxmUBRcikwQ"
+with open("token.txt", "r") as file:
+    token = file.readline()
 headers = {"token": token}
 
 start_year = 1990
