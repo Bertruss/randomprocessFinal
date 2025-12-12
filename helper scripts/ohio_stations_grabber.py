@@ -4,13 +4,13 @@ import pandas as pd
 import pycurl
 from io import BytesIO
 from datetime import datetime as dt
-token = "nvnYOTlhKTtqfZCLuXNQnYxmUBRcikwQ"
-
+with open("token.txt", "r") as file:
+    token = file.readline()
 headers = {"token": token}
 
 
 # pull all stations in the state of ohio
-stations_req = "https://www.ncei.noaa.gov/cdo-web/api/v2/stations?locationid=FIPS:39&datasetid=GHCND&limit=1000"
+stations_req = "https://www.ncei.noaa.gov/cdo-web/api/v2/datatypes"
 r = requests.get(stations_req, headers=headers)
 data = r.json()
 
