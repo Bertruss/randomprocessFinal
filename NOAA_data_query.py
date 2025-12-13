@@ -8,16 +8,9 @@ with open("token.txt", "r") as file:
     token = file.readline()
 headers = {"token": token}
 
+breakpoint()
 start_year = 1990
 end_year = 2025
-
-
-start_date1 = dt(1990, 1, 1)
-end_date1 = dt(1990, 7, 31)
-start_date2 = dt(1990, 8, 1)
-end_date2 = dt(1990, 7, 31)
-
-
 
 ## load list of stations
 station_list = pd.read_csv("observation_station_list.csv")
@@ -39,20 +32,23 @@ for index, station in station_list.iterrows():
         start_date1 = dt(x, 1, 1)
         end_date1 = dt(x, 7, 31)
         start_date2 = dt(x, 8, 1)
-        end_date2 = dt(x, 7, 31)
+        end_date2 = dt(x, 12, 31)
 
         start1 = start_date1.strftime("%Y-%m-%d")
         end1 = end_date1.strftime("%Y-%m-%d")
         # first half
         offset = 1
         while True:
+            print("front half")
             params = {
                 "datasetid": "GHCND",
                 "stationid": STATION,
                 "startdate": start1,
                 "enddate": end1,
                 "limit": 1000,
-                "offset": offset
+                "offset": offset,
+                "datatypeid": ["TAVE", "PRCP", "SNOW", "SNWD", "TMAX", "TMIN", "TOBS", "WT01", "WT03", "WT06", "WT11", "DAPR", "MDPR"]
+
             }
 
             r = requests.get(url, headers=headers, params=params)
@@ -73,12 +69,13 @@ for index, station in station_list.iterrows():
             all_rows.extend(data["results"])
             offset += 1000
             time.sleep(delay)
-        
+
         start2 = start_date2.strftime("%Y-%m-%d")
         end2 = end_date2.strftime("%Y-%m-%d")
-        # first half
+        # 2nd half
         offset = 1
         while True:
+            print("back half")
             time.sleep(delay)
             params = {
                 "datasetid": "GHCND",
@@ -86,7 +83,8 @@ for index, station in station_list.iterrows():
                 "startdate": start2,
                 "enddate": end2,
                 "limit": 1000,
-                "offset": offset
+                "offset": offset,
+                "datatypeid": ["TAVE", "PRCP", "SNOW", "SNWD", "TMAX", "TMIN", "TOBS", "WT01", "WT03", "WT06", "WT11", "DAPR", "MDPR"]
             }
 
             r = requests.get(url, headers=headers, params=params)
@@ -100,13 +98,11 @@ for index, station in station_list.iterrows():
                 r = requests.get(url, headers=headers, params=params)
                 print("STATUS:", r.status_code)
             data2 = r.json()
-
-            if "results" not in data:
+            if "results" not in data2:
                 break
-
             all_rows.extend(data2["results"])
             offset += 1000
-            
+
     title = station["id"] + "_" + str(start_year) + "_" + str(end_year)
     temp = title.split(":")
     title = temp[1]
@@ -114,9 +110,6 @@ for index, station in station_list.iterrows():
     print(df.head())
     df.to_csv(title+".csv")
     # second half
-
-
-
     
 
 """
