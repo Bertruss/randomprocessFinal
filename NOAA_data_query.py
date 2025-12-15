@@ -13,7 +13,7 @@ start_year = 1990
 end_year = 2025
 
 ## load list of stations
-station_list = pd.read_csv("observation_station_list.csv")
+station_list = pd.read_csv("add_list.csv")
 
 url = "https://www.ncei.noaa.gov/cdo-web/api/v2/data"
 delay = 2
@@ -84,7 +84,7 @@ for index, station in station_list.iterrows():
                 "enddate": end2,
                 "limit": 1000,
                 "offset": offset,
-                "datatypeid": ["TAVE", "PRCP", "SNOW", "SNWD", "TMAX", "TMIN", "TOBS", "WT01", "WT03", "WT06", "WT11", "DAPR", "MDPR"]
+                #"datatypeid": ["TAVE", "PRCP", "SNOW", "SNWD", "TMAX", "TMIN", "TOBS", "WT01", "WT03", "WT06", "WT11", "DAPR", "MDPR"]
             }
 
             r = requests.get(url, headers=headers, params=params)

@@ -2,8 +2,8 @@ import json
 from datetime import datetime as dt
 import pandas as pd
 
-start_date = dt(1990, 1, 1)
-end_date = dt(2025, 1, 1)
+start_date = dt(2007, 1, 1)
+end_date = dt(2019, 1, 1)
 
 with open("station_data.json") as f:
     data = json.load(f)
@@ -25,6 +25,7 @@ for entry in data["results"]:
         print(id, name)
         print(lat, lon)
         print(min_date, max_date)
+        print(coverage)
         t = input("keep?")
         if t == "y":
             listy = pd.concat([listy, new_thing], ignore_index=True)
