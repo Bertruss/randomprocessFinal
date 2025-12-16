@@ -47,7 +47,7 @@ for index, station in station_list.iterrows():
                 "enddate": end1,
                 "limit": 1000,
                 "offset": offset,
-                "datatypeid": ["TAVE", "PRCP", "SNOW", "SNWD", "TMAX", "TMIN", "TOBS", "WT01", "WT03", "WT06", "WT11", "DAPR", "MDPR"]
+                "datatypeid": ["TAVE", "PRCP", "SNOW", "SNWD", "TMAX", "TMIN", "TOBS", "TAVE", "WT01", "WT03", "WT06", "WT11", "DAPR", "MDPR"]
 
             }
 
@@ -84,7 +84,7 @@ for index, station in station_list.iterrows():
                 "enddate": end2,
                 "limit": 1000,
                 "offset": offset,
-                #"datatypeid": ["TAVE", "PRCP", "SNOW", "SNWD", "TMAX", "TMIN", "TOBS", "WT01", "WT03", "WT06", "WT11", "DAPR", "MDPR"]
+                "datatypeid": ["TAVE", "PRCP", "SNOW", "SNWD", "TMAX", "TMIN", "TOBS", "TAVE", "WT01", "WT03", "WT06", "WT11", "DAPR", "MDPR"]
             }
 
             r = requests.get(url, headers=headers, params=params)
