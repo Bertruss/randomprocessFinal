@@ -46,8 +46,8 @@ for index, station in station_list.iterrows():
                 "startdate": start1,
                 "enddate": end1,
                 "limit": 1000,
-                "offset": offset,
-                "datatypeid": ["TAVE", "PRCP", "SNOW", "SNWD", "TMAX", "TMIN", "TOBS", "TAVE", "WT01", "WT03", "WT06", "WT11", "DAPR", "MDPR"]
+                "offset": offset
+                #"datatypeid": ["TAVE", "PRCP", "SNOW", "SNWD", "TMAX", "TMIN", "TOBS", "TAVE", "WT01", "WT03", "WT06", "WT11", "DAPR", "MDPR"]
 
             }
 
@@ -83,8 +83,8 @@ for index, station in station_list.iterrows():
                 "startdate": start2,
                 "enddate": end2,
                 "limit": 1000,
-                "offset": offset,
-                "datatypeid": ["TAVE", "PRCP", "SNOW", "SNWD", "TMAX", "TMIN", "TOBS", "TAVE", "WT01", "WT03", "WT06", "WT11", "DAPR", "MDPR"]
+                "offset": offset
+                #"datatypeid": ["TAVE", "PRCP", "SNOW", "SNWD", "TMAX", "TMIN", "TOBS", "TAVE", "WT01", "WT03", "WT06", "WT11", "DAPR", "MDPR"]
             }
 
             r = requests.get(url, headers=headers, params=params)
@@ -108,7 +108,7 @@ for index, station in station_list.iterrows():
     title = temp[1]
     df = pd.DataFrame(all_rows)
     print(df.head())
-    df.to_csv(title+".csv")
+    df.to_csv(title+"redo.csv")
     # second half
     
 
