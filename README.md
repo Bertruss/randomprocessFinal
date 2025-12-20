@@ -5,4 +5,14 @@ A period spanning from 1990 to the present (November 2025) was selected arbitrar
 Belleville Lock and Dam actually lacked observed temperature data, so it isn't included in the aggregate
 
 Lunken airport lacked observed or average temp recordings for the majority of the period of interest, so observed max and min were used to 
-approximate a daily average. for the portion of the dataset where a recorded daily average was available the approximation based on the max and min had a mean error of -0.15701984275552505 
+approximate a daily average.
+
+Assessment of approximation:
+
+Mean difference between Approx. and Actual:
+-0.15701984275552505
+
+Mean Approx:128.7753650318233
+Mean Actual:130.3455634593785
+
+Correlation Coeff Actual vs Approx:0.9998855409710693

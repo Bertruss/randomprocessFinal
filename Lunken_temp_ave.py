@@ -3,8 +3,9 @@ import math
 import matplotlib.pyplot as plt
 import datetime as dt
 import os
+import statistics as st
 
-file = "./oh_weather_data/USW00093812_1990_2025_redo.csv"
+file = "./data/oh_weather_data/USW00093812_1990_2025_redo.csv"
 
 sample = pd.read_csv(file)
 
@@ -74,8 +75,12 @@ overlap = [dt.datetime.fromisoformat(entry[1]["date"]) for entry in TAVG.iterrow
 actual = TAVG["value"].to_list()
 
 # verify similarity of sets
+plt.ion()
+plt.show()
+plt.title("Comparison of average temperature approximation to actual")
 plt.plot(overlap, actual, 'o', alpha=.5)
 plt.plot(overlap, approx, "^", alpha=.5)
+plt.pause(.5)
 diff = [(b-a)/10 for a, b in zip(actual, approx)]
 
 print("Assessing quality of approximation:")
@@ -95,14 +100,10 @@ print()
 norm_approx = [val-E_approx for val in approx]
 norm_actual = [val-E_actual for val in actual]
 cov_ac = sum([n_c*n_a for n_c,n_a in zip(norm_approx, norm_actual)])/N
-print(f"Covariance Actual, Approx: {cov_ac}")
-print()
-var_approx = sum([x**2 for x in approx])/N - E_approx**2 
-print(f"Var Approx:{var_approx}")
 
+var_approx = sum([x**2 for x in approx])/N - E_approx**2 
 var_actual = sum([x**2 for x in actual])/N - E_actual**2
-print(f"Mean Actual:{var_actual}")
-print()
+
 cor_ac = cov_ac/(math.sqrt(var_actual)*math.sqrt(var_approx))
 print(f"Correlation Coeff Actual vs Approx:{cor_ac}")
 print()
