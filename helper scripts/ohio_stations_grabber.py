@@ -1,33 +1,45 @@
 import requests
 import json
 import pandas as pd
-import pycurl
-from io import BytesIO
+import time
 from datetime import datetime as dt
-with open("token.txt", "r") as file:
+with open("../token.txt", "r") as file:
     token = file.readline()
 headers = {"token": token}
 
 
 # pull all stations in the state of ohio
-stations_req = "https://www.ncei.noaa.gov/cdo-web/api/v2/datatypes"
-r = requests.get(stations_req, headers=headers)
-data = r.json()
+stations_req = "https://www.ncei.noaa.gov/cdo-web/api/v2/stations"
+offset = 1
+delay = 2
+all_rows = []
+data = []
+while True:
+    params = {
+        "locationid": "FIPS:39",
+        "limit": 1000,
+        "offset": offset
+    }
 
-filename = "station_data.json"
-f = open(filename, 'w')
-f.write(json.dumps(data, indent=2))
-f.close()
+    req = requests.get(stations_req, headers=headers, params=params)
+    print("STATUS:", req.status_code)
+    rcount = 0
+    while not (req.status_code == 200) and rcount < 20:
+        # retry
+        rcount += 1
+        print("retrying ...")
+        time.sleep(5 + rcount)
+        req = requests.get(stations_req, headers=headers, params=params)
+        print("STATUS:", req.status_code)
+    data = req.json()
+    if "results" not in data:
+        break
+
+    all_rows.extend(data["results"])
+    offset += 1000
+    time.sleep(delay)
+
 breakpoint()
-
-
-
-start_date = dt(1990, 1, 1)
-end_date = dt(2025, 1, 1)
-
-url = "https://www.ncei.noaa.gov/cdo-web/api/v2/"
-
-
 """
 print(start_date.isoformat())
 breakpoint()
