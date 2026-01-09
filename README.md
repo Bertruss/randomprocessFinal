@@ -2,17 +2,8 @@ General Notes
 
 A period spanning from 1990 to the present (November 2025) was selected arbitrarily as a period of significant enough length to be indicative of long term trends, and it was anticipated this period would demonstrate the most significant diversification of the makeup of electrical generation sources with the state of Ohio. 
 
-Belleville Lock and Dam actually lacked observed temperature data, so it isn't included in the aggregate
+Within the dataset for weather information for the state of ohio, there are over 1900 different observation stations from which daily measurements have been taken. These stations were narrowed down to a list of only 75; all stations that cover the relevant period (1990-present), and containing the relevant temperature data.
 
-Lunken airport lacked observed or average temp recordings for the majority of the period of interest, so observed max and min were used to 
-approximate a daily average.
+It needs to be noted that the temperature measurements are not entirely heterogeneous, and are frustratingly inconsistent. There is both the 'TOBS' datatype, which is simply observed temperature at the time of recording, then there is also the 'TAVG' datatype, where "average" is not defined by a specific calculation but is at the discretion of the administration of an individual observation station. It may be calculated by averaging a minutely or hourly temperature measurement done throughout the day, or from a series of measurements taken at a longer fixed interval. Furthermore, few if any datasets that may have this daily average have full coverage of the desired time period with this measurement. Therefore, I have opted to instead use a widely accepted method, by which the daily mean is estimated by averaging the minimum and maximum observed temperature, measurements which have very near full coverage. (https://www.climate.gov/maps-data/climate-data-primer/how-do-weather-observations-become-climate-data)
 
-Assessment of approximation:
-
-Mean difference between Approx. and Actual:
--0.15701984275552505
-
-Mean Approx:128.7753650318233
-Mean Actual:130.3455634593785
-
-Correlation Coeff Actual vs Approx:0.9998855409710693
+I aggregated this data together into a single "ohio" dataset, and functionally this allowed me to turn the daily temperature and monthly temperature into random variables defined by their sample mean and variance. The aggregate "daily" and "monthly" datasets are then comprised of corresponding mean and variance for every available data point for every day.
