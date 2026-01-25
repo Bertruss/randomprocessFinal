@@ -3,9 +3,16 @@ import matplotlib.pyplot as plt
 import datetime as dt
 import math
 import os
+import bisect
 
 folder = "./data/ohio_weather_data_rev2"
 date_format = "%Y-%m-%d"
+
+# date/value lookup function, binary search tree
+def value_for_date(data, target_date):
+    dates = [x for x, _ in data]
+    i = bisect.bisect_left(dates, target_date)
+    return data[i][1] if i < len(data) and dates[i] == target_date else None
 
 # Generate date range indpendent of set coverage
 oneday = dt.timedelta(days=1)
@@ -21,11 +28,10 @@ for file in os.listdir(folder):
     tmin = sample[sample["datatype"] == "TMIN"] 
         
     dateobj = [dt.datetime.fromisoformat(x) for x in tmin["date"]]
-    day_ave = [(ma-mi)/2 for mi, ma in zip(tmin["value"], tmax["value"])]
+    day_ave = [(ma+mi)/2 for mi, ma in zip(tmin["value"], tmax["value"])]
     tlist = [(date, temp) for date, temp in zip(dateobj, day_ave)]
     filedata.append(tlist)
 
-breakpoint()
 
 # From the total set of date-value pairs, select all values that correspond to every date and generate an average
 daily_ave = []
@@ -35,7 +41,10 @@ daily_skew = []
 for date in date_list:
     print(date)
     try:
-        temp = [date_val[1] for file in filedata for date_val in file if date_val[0] == date]
+        temp = [value_for_date(file, date) for file in filedata]
+        temp = [x for x in temp if x != None]
+        if None in temp:
+            breakpoint()
         ave = (sum(temp)/len(temp))
         var = sum([((x-ave)**2)for x in temp])/(len(temp)-1) # N-1, "bessels correction", essentially lessens the bias towards the mean a real sample set will have 
         std_dev = math.sqrt(var)
@@ -79,7 +88,10 @@ for i, date in enumerate(date_list):
         monthly_skew.append(skew)
         accum = []
         days = 0
-    temp = [date_val[1] for file in filedata for date_val in file if date_val[0] == date]
+    temp = [value_for_date(file, date) for file in filedata]
+    temp = [x for x in temp if x != None]
+    if None in temp:
+        breakpoint()
     accum += temp
     days += 1
 

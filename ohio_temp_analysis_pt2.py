@@ -33,23 +33,36 @@ ave_list = []
 var_list = []
 for file in os.listdir(folder):
     sid = next(i for i, x in enumerate(station_id) if x == file.split('_')[0])
+    print(stations[sid]["name"])
     stations_reorder.append(stations[sid].copy())
     sample = pd.read_csv(folder+'/'+file)
     tmax = sample[sample["datatype"] == "TMAX"] 
     tmin = sample[sample["datatype"] == "TMIN"] 
         
     dateobj = [dt.datetime.fromisoformat(x) for x in tmin["date"]]
-    day_ave = [(ma-mi)/2 for mi, ma in zip(tmin["value"], tmax["value"])]
+    day_ave = [(ma+mi)/2 for mi, ma in zip(tmin["value"], tmax["value"])]
     tlist = [(date, temp) for date, temp in zip(dateobj, day_ave)]
+    
+    ## apparently there
+    
+    
     try:
         ave = sum(day_ave)/len(day_ave)
         ave_list.append(ave)
         var = sum([x**2 for x in day_ave])/len(day_ave) - ave**2
         var_list.append(var)
+        if var < 6500:
+            breakpoint()
+            print(stations[sid]["id"])
+            fig, ax = plt.subplots()
+            ax.plot(dateobj, day_ave)
+            ax.title(stations[sid]["name"])
+            plt.show(block=False)
+            plt.pause(.1)
     except:
         breakpoint()
-
     filedata.append(tlist)
+
 
 ## numbered stations list corresponding to the order of filedata
 stations_n = [(i,x) for i, x in enumerate(stations_reorder)]
@@ -64,7 +77,9 @@ stations_n = [(i,x) for i, x in enumerate(stations_reorder)]
 dist_list = []
 cov_list = []
 corr_list = []
+station_pairs = []
 for i, cov_pair in enumerate(itertools.combinations(stations_n, 2)):
+    station_pairs.append(cov_pair)
     print(f"run number: {i} ################################")
     data1 = cov_pair[0]
     data2 = cov_pair[1]
@@ -109,25 +124,22 @@ for i, cov_pair in enumerate(itertools.combinations(stations_n, 2)):
     ## calculate correlation coefficient
     corr_list.append(cov/(math.sqrt(var1)*math.sqrt(var2)))
 
-
-# create nxn covariance matrix
-station_pairs = list(itertools.combinations(stations_n, 2))
-
 column_row_header = []
 row_data = []
 # build covariance matrix
 for station1 in stations_n:
     print(station1[1].id)
-    column_row_header.append(station1[1].id)
+    column_row_header.append(station1[1]["name"].split(',')[0])
     row = dict()
     for station2 in stations_n:
         print(station1[1]["name"], "###", station2[1]["name"])
+        namestring = station2[1]["name"].split(',')[0] + " | " + station2[1]["id"]
         if station1 == station2:
-            row[station1[1].id] = var_list[station1[0]]
+            row[namestring] = var_list[station1[0]]
         else:
             cov_ind = next(i for i, pair in enumerate(station_pairs) if pair[0][1]["name"] == station1[1]["name"] and pair[1][1]["name"] == station2[1]["name"]
             or pair[0][1]["name"] == station2[1]["name"] and pair[1][1]["name"] == station1[1]["name"])
-            row[station2[1].id] = cov_list[station1[0]]
+            row[namestring] = cov_list[cov_ind]
     row_data.append(row)
 cov_matrix = pd.DataFrame(row_data)
 
@@ -139,17 +151,28 @@ im = ax.imshow(cov_matrix.values, cmap='coolwarm')
 plt.colorbar(im, ax=ax)
 
 # Tick labels
-ax.set_xticks(np.arange(len(cov_matrix.columns)))
+ax.set_xticks(np.arange(len(cov_matrix.index)))
 ax.set_yticks(np.arange(len(cov_matrix.index)))
-ax.set_xticklabels(cov_matrix.columns)
-ax.set_yticklabels(cov_matrix.index)
+#ax.set_xticklabels(cov_matrix.index)
+ax.set_yticklabels(cov_matrix.columns)
 
 # Rotate x-axis labels
-plt.setp(ax.get_xticklabels(), rotation=45, ha='right')
+#plt.setp(ax.get_xticklabels(), ha='right')
 
 ax.set_title("Covariance Matrix Heatmap")
 
 plt.tight_layout()
 plt.show()
 
+
+## a little meta, but calculate correlation coefficient between correlation coefficient and euclidean distance
+ave_dist = sum(dist_list)/len(dist_list)
+ave_corr = sum(corr_list)/len(corr_list)
+
+var_corr = sum([d**2 for d in dist_list]) - ave_dist**2
+var_dist = sum([d**2 for d in corr_list]) - ave_corr**2
+dist_corr_covariance = sum([(d-ave_dist)*(c-ave_corr)for d, c, in zip(dist_list, corr_list)])/len(dist_list)
+coef = dist_corr_covariance/(math.sqrt(var_dist)*math.sqrt(var_corr))
+
+plt.plot(dist_list, corr_list)
 breakpoint()
