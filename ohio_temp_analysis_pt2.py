@@ -7,6 +7,8 @@ import os
 import numpy as np
 import bisect
 
+import pickle
+
 # date/value lookup function, binary search tree
 def value_for_date(data, dates, target_date):
     i = bisect.bisect_left(dates, target_date)
@@ -38,35 +40,38 @@ for file in os.listdir(folder):
     sample = pd.read_csv(folder+'/'+file)
     tmax = sample[sample["datatype"] == "TMAX"] 
     tmin = sample[sample["datatype"] == "TMIN"] 
-        
-    dateobj = [dt.datetime.fromisoformat(x) for x in tmin["date"]]
-    day_ave = [(ma+mi)/2 for mi, ma in zip(tmin["value"], tmax["value"])]
-    tlist = [(date, temp) for date, temp in zip(dateobj, day_ave)]
-    
-    ## apparently there
-    
-    
-    try:
-        ave = sum(day_ave)/len(day_ave)
-        ave_list.append(ave)
-        var = sum([x**2 for x in day_ave])/len(day_ave) - ave**2
-        var_list.append(var)
-        if var < 6500:
-            breakpoint()
-            print(stations[sid]["id"])
-            fig, ax = plt.subplots()
-            ax.plot(dateobj, day_ave)
-            ax.title(stations[sid]["name"])
-            plt.show(block=False)
-            plt.pause(.1)
-    except:
-        breakpoint()
-    filedata.append(tlist)
 
+    dateobj_min = [dt.datetime.fromisoformat(x) for x in tmin["date"]]
+    dateobj_max = [dt.datetime.fromisoformat(x) for x in tmax["date"]]
+    vals_min = [(x,y) for x,y in zip(tmin["date"].tolist(), tmin["value"].tolist())]
+    vals_max = [(x,y) for x,y in zip(tmax["date"].tolist(), tmax["value"].tolist())]
+    ## Apparently you can not rely on files having both tmax AND tmin for any given date
+    # assemble list of synced max/min pairs UGH >:C
+    dateobj = [dt.datetime.fromisoformat(x) for x in sample["date"].unique()]
+    date_list = []
+    vals_list = []
+    N = 0
+    for date in dateobj:
+        tmax_tmp = value_for_date(vals_max, dateobj_max, date)
+        tmin_tmp = value_for_date(vals_min, dateobj_min, date)
+        if tmin_tmp != None and tmax_tmp != None:
+            date_list.append(date)
+            vals_list.append((tmax_tmp,tmin_tmp))
+        else:
+            if (tmin_tmp == None) ^ (tmax_tmp == None):
+               N+=1
+    print(f"Misaligned points: {N}")
+    print()
+
+    day_ave = [(ma+mi)/2 for ma, mi in vals_list]
+    tlist = [(date, temp) for date, temp in zip(date_list, day_ave)]
+    set_ave = sum(day_ave)/len(day_ave)
+    var = sum([x**2 for x in day_ave])/len(day_ave) - set_ave**2
+    var_list.append(var)
+    filedata.append(tlist)
 
 ## numbered stations list corresponding to the order of filedata
 stations_n = [(i,x) for i, x in enumerate(stations_reorder)]
-
 
 ## basic experiment
 ## Question: Is there a relationship between station-station distance and station obeservation covariance?
@@ -88,12 +93,6 @@ for i, cov_pair in enumerate(itertools.combinations(stations_n, 2)):
     dataset1 = filedata[data1[0]]
     dataset2 = filedata[data2[0]]
     
-    ave1 = ave_list[data1[0]]
-    ave2 = ave_list[data2[0]]
-
-    var1 = var_list[data1[0]]
-    var2 = var_list[data2[0]]
-
     vals1 = [x[1] for x in dataset1]
     vals2 = [x[1] for x in dataset2]
     
@@ -109,20 +108,35 @@ for i, cov_pair in enumerate(itertools.combinations(stations_n, 2)):
     nn = 0
     dates1 = [d for d,_ in dataset1]
     dates2 = [d for d,_ in dataset2]
+    sub1_list = []
+    sub2_list = []
+    cov_pairs = []
     for date in date_list:
+        #must compute the variance and ave of the overlapping set
         val1 = value_for_date(dataset1, dates1, date)
         val2 = value_for_date(dataset2, dates2, date)
         if not (val2 == None or val1 == None):
-            sum_cov += (val1 - ave1)*(val2 - ave2)
-            nn += 1
-    try:
-        cov = sum_cov/nn
-        cov_list.append(cov)
-    except:
-        cov_list.append(0) # should really be NA
+            sub1_list.append(val1)
+            sub2_list.append(val2)
+            cov_pairs.append((val1, val2))
     
+    if len(sub1_list) <= 1:
+        corr = math.nan
+        cov = math.nan
+        breakpoint()
+    else:
+        ave1 = sum(sub1_list)/len(sub1_list)
+        ave2 = sum(sub2_list)/len(sub2_list)
+        var1 = sum([x**2 for x in sub1_list])/len(sub1_list) - ave1**2   
+        var2 = sum([x**2 for x in sub2_list])/len(sub2_list) - ave2**2
+
+        cov = sum([(x - ave1)*(y - ave2) for x,y in cov_pairs])/len(cov_pairs)       
+        corr = cov/(math.sqrt(var1)*math.sqrt(var2))
     ## calculate correlation coefficient
-    corr_list.append(cov/(math.sqrt(var1)*math.sqrt(var2)))
+    if corr > 1:
+        print("no correlation")
+    cov_list.append(cov)    
+    corr_list.append(corr)
 
 column_row_header = []
 row_data = []
@@ -143,36 +157,26 @@ for station1 in stations_n:
     row_data.append(row)
 cov_matrix = pd.DataFrame(row_data)
 
-fig, ax = plt.subplots(figsize=(8, 6))
-
-im = ax.imshow(cov_matrix.values, cmap='coolwarm')
-
-# Colorbar
-plt.colorbar(im, ax=ax)
-
-# Tick labels
-ax.set_xticks(np.arange(len(cov_matrix.index)))
-ax.set_yticks(np.arange(len(cov_matrix.index)))
-#ax.set_xticklabels(cov_matrix.index)
-ax.set_yticklabels(cov_matrix.columns)
-
-# Rotate x-axis labels
-#plt.setp(ax.get_xticklabels(), ha='right')
-
-ax.set_title("Covariance Matrix Heatmap")
-
-plt.tight_layout()
-plt.show()
-
-
 ## a little meta, but calculate correlation coefficient between correlation coefficient and euclidean distance
 ave_dist = sum(dist_list)/len(dist_list)
 ave_corr = sum(corr_list)/len(corr_list)
 
-var_corr = sum([d**2 for d in dist_list]) - ave_dist**2
-var_dist = sum([d**2 for d in corr_list]) - ave_corr**2
+var_corr = sum([d**2 for d in corr_list]) - ave_corr**2
+var_dist = sum([d**2 for d in dist_list]) - ave_dist**2
 dist_corr_covariance = sum([(d-ave_dist)*(c-ave_corr)for d, c, in zip(dist_list, corr_list)])/len(dist_list)
 coef = dist_corr_covariance/(math.sqrt(var_dist)*math.sqrt(var_corr))
 
-plt.plot(dist_list, corr_list)
+results_pt2 = {
+    "coef": coef,
+    "dist_list": dist_list,
+    "corr_list": corr_list,
+    "cov_matrix": cov_matrix,
+    "ave_list": ave_list,
+    "var_list": var_list,
+    "filedata": filedata
+}
+
+with open("results_pt2.pkl", "wb") as f:
+    pickle.dump(results_pt2, f, protocol=pickle.HIGHEST_PROTOCOL)
+
 breakpoint()
