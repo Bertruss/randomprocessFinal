@@ -1,0 +1,40 @@
+,fuel types,fuel description
+0,AOR,all renewables
+1,BIO,biomass
+2,BIS,bituminous coal and synthetic coal
+3,BIT,bituminous coal
+4,COL,"coal, excluding waste coal"
+5,COW,all coal products
+6,DFO,distillate fuel oil
+7,DPV,estimated small scale solar photovoltaic
+8,FOS,fossil fuels
+9,HYC,conventional hydroelectric
+10,NG,natural gas
+11,NGO,natural gas & other gases
+12,OB2,biomass
+13,OBW,biomass
+14,ORW,other renewables
+15,OTH,other
+16,PEL,petroleum liquids
+17,PET,petroleum
+18,REN,renewable
+19,SPV,solar photovoltaic
+20,SUB,subbituminous coal
+21,SUN,solar
+22,TPV,estimated total solar photovoltaic
+23,TSN,estimated total solar
+24,WAS,renewable waste products
+25,WND,wind
+26,WNT,onshore wind turbine
+27,WOO,waste oil and other oils
+28,ALL,all fuels
+29,LFG,landfill gas
+30,MLG,municiapl landfill gas
+31,NUC,nuclear
+32,RC,refined coal
+33,OOG,other gases
+34,PC,petroleum coke
+35,WWW,wood and wood wastes
+36,WOC,waste coal
+37,RFO,residual fuel oil
+38,LIG,lignite coal
