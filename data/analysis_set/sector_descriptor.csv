@@ -1,0 +1,15 @@
+,sectorID,sectorList
+0,1,Electric Utility
+1,2,IPP Non-CHP
+2,3,IPP CHP
+3,4,Commercial Non-CHP
+4,5,Commercial CHP
+5,6,Industrial Non-CHP
+6,7,Industrial CHP
+7,8,Residential
+8,90,Electric Power Sector Non-CHP
+9,94,Independent Power Producers
+10,96,All Commercial
+11,97,All Industrial
+12,98,Electric Power
+13,99,All Sectors
