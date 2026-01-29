@@ -9,6 +9,8 @@ import bisect
 import matplotlib.dates as mdates
 import pickle
 
+# Visualization script, taking products of pt1 and pt2 and plotting them
+
 with open("results_pt1.pkl", "rb") as f:
     results_pt1 = pickle.load(f)
 
@@ -302,7 +304,6 @@ r = input("Render covariance matrix?")
 if r == 'y':
     # plot covariance matrix
     fig, ax = plt.subplots(figsize=(8, 6))
-
     # make NaN mask and set color values
     cov_masked = np.ma.masked_invalid(cov_matrix.values)
     cmap = plt.cm.coolwarm.copy()
@@ -315,8 +316,12 @@ if r == 'y':
     # Tick labels
     ax.set_xticks(np.arange(len(cov_matrix.index)))
     ax.set_yticks(np.arange(len(cov_matrix.index)))
-    #ax.set_xticklabels(cov_matrix.index)
-    ax.set_yticklabels(cov_matrix.columns)
+    ax.tick_params(axis='x', labelrotation=90)
+    #ax.tick_params(axis='x', labelsize=9)
+    ax.tick_params(axis='x', labelbottom=False)
+    xlabels = [x.split(" |")[0] for x in cov_matrix.columns]
+    #ax.set_xticklabels(xlabels)
+    ax.set_yticklabels(xlabels)
 
     #Rotate x-axis labels
     #plt.setp(ax.get_xticklabels(), ha='right')
@@ -325,11 +330,6 @@ if r == 'y':
     plt.show(block=False)
     fig = plt.gcf()
     fig.canvas.manager.set_window_title("Station Covariance Matrix")
-
-
-# Notable outliers, lunken, kenton
-# lunken = filedata[1]
-# kenton = filedata[11]
 
 r = input("Render station spatial coupling plot?")
 if r == 'y':
@@ -361,12 +361,15 @@ if r == 'y':
 
     test_x = [0,250,300]
     test_y = [linear_pred(x) for x in test_x]
-    ax.text(test_x[1], test_y[1], f"R = {coeff}", color="black", fontsize=12, ha="left", va="bottom")
+    ax.text(test_x[1], test_y[1], f"r = {coeff:.5g} \n slope = {(cd_cov/dist_var):.5g}", color="black", fontsize=12, ha="left", va="bottom")
     plt.title("Inter-Observation Station Observed Temperature Spatial Coupling")
-    plt.plot(dist_list, corr_list, '.')
-    plt.plot(test_x, test_y, color="red")
+    plt.plot(dist_list, corr_list, '.', label="Observed Correlations")
+    plt.plot(test_x, test_y, color="red", label="Linear Prediction")
     ax.set_xlabel("Station Separation (Miles)")
     ax.set_ylabel("Station Temperature Correlation (No Unit)")
+    plt.ylim(0,1.3)
+    ax.legend(loc="best")
     fig.canvas.manager.set_window_title("spatial coupling")
+    ax.autoscale(axis="x", tight=True)
     plt.show(block=False)
 breakpoint()

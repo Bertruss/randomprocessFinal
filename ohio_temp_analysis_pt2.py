@@ -66,7 +66,7 @@ for file in os.listdir(folder):
     day_ave = [(ma+mi)/2 for ma, mi in vals_list]
     tlist = [(date, temp) for date, temp in zip(date_list, day_ave)]
     set_ave = sum(day_ave)/len(day_ave)
-    var = sum([x**2 for x in day_ave])/len(day_ave) - set_ave**2
+    var = sum([(x - set_ave)**2 for x in day_ave])/(len(day_ave) - 1)
     var_list.append(var)
     filedata.append(tlist)
 
@@ -116,18 +116,17 @@ for i, cov_pair in enumerate(itertools.combinations(stations_n, 2)):
         # The case where two datasets have little or no overlap
         corr = math.nan
         cov = math.nan
-        breakpoint()
     else:
         # mean
         ave1 = sum(sub1_list)/len(sub1_list)
         ave2 = sum(sub2_list)/len(sub2_list)
         
         # variance
-        var1 = sum([x**2 for x in sub1_list])/len(sub1_list) - ave1**2   
-        var2 = sum([x**2 for x in sub2_list])/len(sub2_list) - ave2**2
+        var1 = sum([(x - ave1)**2 for x in sub1_list])/(len(sub1_list)-1)    
+        var2 = sum([(x - ave2)**2 for x in sub2_list])/(len(sub2_list)-1) 
 
         # covariance
-        cov = sum([(x - ave1)*(y - ave2) for x,y in cov_pairs])/len(cov_pairs)       
+        cov = sum([(x - ave1)*(y - ave2) for x,y in cov_pairs])/(len(cov_pairs)-1)       
         
         # correlation
         corr = cov/(math.sqrt(var1)*math.sqrt(var2))
@@ -157,12 +156,13 @@ cov_matrix = pd.DataFrame(row_data)
 ave_dist = sum(dist_list)/len(dist_list)
 ave_corr = sum(corr_list)/len(corr_list)
 
-var_corr = sum([d**2 for d in corr_list]) - ave_corr**2
-var_dist = sum([d**2 for d in dist_list]) - ave_dist**2
-dist_corr_covariance = sum([(d-ave_dist)*(c-ave_corr)for d, c, in zip(dist_list, corr_list)])/len(dist_list)
+var_corr = sum([(d - ave_corr)**2 for d in corr_list])/(len(corr_list) - 1)
+var_dist = sum([(d - ave_dist)**2 for d in dist_list])/(len(dist_list) - 1)
+dist_corr_covariance = sum([(d-ave_dist)*(c-ave_corr)for d, c, in zip(dist_list, corr_list)])/(len(dist_list) - 1)
 coef = dist_corr_covariance/(math.sqrt(var_dist)*math.sqrt(var_corr))
 
 results_pt2 = {
+    "coef" : coef,
     "dist_list": dist_list,
     "corr_list": corr_list,
     "cov_matrix": cov_matrix,
