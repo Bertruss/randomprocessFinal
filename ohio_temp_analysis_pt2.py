@@ -25,11 +25,12 @@ date_list = [dt.datetime(1990, 1, 1)]
 while date_list[-1] != dt.datetime(2025, 12, 1):
     date_list.append(date_list[-1]+oneday)
 
-stations = [x[1] for x in pd.read_csv("./helper scripts/stations_list_rev3.csv").iterrows()] #load stations into
+# load stations metadata
+stations = [x[1] for x in pd.read_csv("./helper scripts/stations_list_rev3.csv").iterrows()]
 station_id = [x["id"].split(':')[1] for x in stations]
 stations_reorder = []
 
-# loads all datasets, averages temp in accordance with standard practices (min-max)/2
+# loads all datasets, averages temp in accordance with standard practices (min+max)/2
 filedata = []
 ave_list = []
 var_list = []
@@ -45,6 +46,7 @@ for file in os.listdir(folder):
     dateobj_max = [dt.datetime.fromisoformat(x) for x in tmax["date"]]
     vals_min = [(x,y) for x,y in zip(tmin["date"].tolist(), tmin["value"].tolist())]
     vals_max = [(x,y) for x,y in zip(tmax["date"].tolist(), tmax["value"].tolist())]
+    
     ## Apparently you can not rely on files having both tmax AND tmin for any given date
     # assemble list of synced max/min pairs UGH >:C
     dateobj = [dt.datetime.fromisoformat(x) for x in sample["date"].unique()]
@@ -60,8 +62,6 @@ for file in os.listdir(folder):
         else:
             if (tmin_tmp == None) ^ (tmax_tmp == None):
                N+=1
-    print(f"Misaligned points: {N}")
-    print()
 
     day_ave = [(ma+mi)/2 for ma, mi in vals_list]
     tlist = [(date, temp) for date, temp in zip(date_list, day_ave)]
@@ -72,11 +72,6 @@ for file in os.listdir(folder):
 
 ## numbered stations list corresponding to the order of filedata
 stations_n = [(i,x) for i, x in enumerate(stations_reorder)]
-
-## basic experiment
-## Question: Is there a relationship between station-station distance and station obeservation covariance?
-## Hypothesis: Given the nature of environmental conditions being tied to geographic features, I predict an inverse relationship between 
-## station-station distance and covariance. 
 
 ## Compute all covariance pairs and euclidean distances
 dist_list = []
@@ -102,17 +97,14 @@ for i, cov_pair in enumerate(itertools.combinations(stations_n, 2)):
     lon_d = 69.172*scaler*abs(data1[1].lon - data2[1].lon)
     dist_list.append(math.sqrt(lat_d**2 + lon_d**2))
 
-    # align dates
-    cov = 0 
-    sum_cov = 0
-    nn = 0
+    # Must compute the variance and ave of the overlapping set
+    # Create subsets consisting of date aligned data
     dates1 = [d for d,_ in dataset1]
     dates2 = [d for d,_ in dataset2]
     sub1_list = []
     sub2_list = []
     cov_pairs = []
     for date in date_list:
-        #must compute the variance and ave of the overlapping set
         val1 = value_for_date(dataset1, dates1, date)
         val2 = value_for_date(dataset2, dates2, date)
         if not (val2 == None or val1 == None):
@@ -121,20 +113,24 @@ for i, cov_pair in enumerate(itertools.combinations(stations_n, 2)):
             cov_pairs.append((val1, val2))
     
     if len(sub1_list) <= 1:
+        # The case where two datasets have little or no overlap
         corr = math.nan
         cov = math.nan
         breakpoint()
     else:
+        # mean
         ave1 = sum(sub1_list)/len(sub1_list)
         ave2 = sum(sub2_list)/len(sub2_list)
+        
+        # variance
         var1 = sum([x**2 for x in sub1_list])/len(sub1_list) - ave1**2   
         var2 = sum([x**2 for x in sub2_list])/len(sub2_list) - ave2**2
 
+        # covariance
         cov = sum([(x - ave1)*(y - ave2) for x,y in cov_pairs])/len(cov_pairs)       
+        
+        # correlation
         corr = cov/(math.sqrt(var1)*math.sqrt(var2))
-    ## calculate correlation coefficient
-    if corr > 1:
-        print("no correlation")
     cov_list.append(cov)    
     corr_list.append(corr)
 
@@ -157,7 +153,7 @@ for station1 in stations_n:
     row_data.append(row)
 cov_matrix = pd.DataFrame(row_data)
 
-## a little meta, but calculate correlation coefficient between correlation coefficient and euclidean distance
+## Calculate correlation coefficient between correlation coefficient and euclidean distance
 ave_dist = sum(dist_list)/len(dist_list)
 ave_corr = sum(corr_list)/len(corr_list)
 
@@ -167,7 +163,6 @@ dist_corr_covariance = sum([(d-ave_dist)*(c-ave_corr)for d, c, in zip(dist_list,
 coef = dist_corr_covariance/(math.sqrt(var_dist)*math.sqrt(var_corr))
 
 results_pt2 = {
-    "coef": coef,
     "dist_list": dist_list,
     "corr_list": corr_list,
     "cov_matrix": cov_matrix,
