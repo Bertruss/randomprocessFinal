@@ -97,11 +97,12 @@ month_date = []
 curr_month = 1
 accum = []
 days = 0
+month_date.append(date_list[0])
 for i, date in enumerate(date_list):
     if not curr_month == date_list[i].month:
         print(curr_month, days)
         curr_month = date_list[i].month
-        month_date.append(date_list[i-1])
+        month_date.append(date_list[i])
         ave = sum(accum)/len(accum)
         monthly_ave.append(ave)
         var = sum([((x-ave)**2)for x in accum])/(len(accum)-1)
@@ -118,6 +119,15 @@ for i, date in enumerate(date_list):
         breakpoint()
     accum += temp
     days += 1
+ave = sum(accum)/len(accum)
+monthly_ave.append(ave)
+var = sum([((x-ave)**2)for x in accum])/(len(accum)-1)
+std_dev = math.sqrt(var)
+skew = sum([(x-ave)**3 for x in accum])/((len(accum) - 1)*math.sqrt(var)**3)
+monthly_var.append(var)
+monthly_dev.append(std_dev)
+monthly_skew.append(skew)
+breakpoint()
 
 ohio_monthly_temp = {
     "date" : month_date,
@@ -126,8 +136,6 @@ ohio_monthly_temp = {
     "stddev"  : monthly_dev,
     "skew"  : monthly_skew
 }
-
-
 
 ## generate singular daily average for representative year
 ave = []
