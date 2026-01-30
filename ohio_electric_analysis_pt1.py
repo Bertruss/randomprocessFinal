@@ -14,7 +14,7 @@ def has_any_nonzero(arr):
     arr = np.asarray(arr)
     return np.nanmax(np.abs(arr)) > 0 if not np.all(np.isnan(arr)) else False
 
-## Breaking down monolithic electrical dataset into parsable 
+## Breaking down monolithic electrical dataset into managable data structure
 
 # sync fuel types and fuel type description
 fuel_types = e_sample["fueltypeid"].tolist()
@@ -126,8 +126,10 @@ sales_unit = "million kilowatt hours"
 
 sub_sample = sale_sample[sale_sample["sector"] == 'RES']
 period = sub_sample["period"].to_list()
+period = [pd.to_datetime(s, format="%Y-%m-%d") for s in period]
 price = sub_sample["price"].to_list()
 sales = sub_sample["sales"].to_list()
+breakpoint()
 res_sales = {
     "period" : period,
     "price" : price,
@@ -136,6 +138,7 @@ res_sales = {
 
 sub_sample = sale_sample[sale_sample["sector"] == 'COM']
 period = sub_sample["period"].to_list()
+period = [pd.to_datetime(s, format="%Y-%m-%d") for s in period]
 price = sub_sample["price"].to_list()
 sales = sub_sample["sales"].to_list()
 com_sales = {
@@ -143,7 +146,6 @@ com_sales = {
     "price" : price,
     "sales" : sales
 }
-
 
 e_data_package = {
     "fuelType" : ftl,

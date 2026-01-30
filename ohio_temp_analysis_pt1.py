@@ -106,7 +106,7 @@ for i, date in enumerate(date_list):
         monthly_ave.append(ave)
         var = sum([((x-ave)**2)for x in accum])/(len(accum)-1)
         std_dev = math.sqrt(var)
-        skew = sum([(((x-ave)/math.sqrt(var))**3)for x in accum])/(len(accum))
+        skew = sum([(x-ave)**3 for x in accum])/((len(accum) - 1)*math.sqrt(var)**3)
         monthly_var.append(var)
         monthly_dev.append(std_dev)
         monthly_skew.append(skew)
@@ -141,7 +141,7 @@ date_list = [dt.datetime(1990, 1, 1)]
 while date_list[-1] != dt.datetime(1990, 12, 31):
     date_list.append(date_list[-1]+oneday)
 
-# Note: ignoring leap years because ehhhh :/
+# Note: ignoring leap days because ehhhh :/
 date_aligned_dataset = []
 for i, date in enumerate(date_list):
     temp = [date_val[1] for file in filedata for date_val in file if date_val[0].day == date.day and date_val[0].month == date.month]
@@ -150,7 +150,7 @@ for i, date in enumerate(date_list):
     aave = sum(temp)/len(temp)
     avar = sum([((x-aave)**2)for x in temp])/(len(temp)-1)
     astd_dev = math.sqrt(avar)
-    askew = sum([(((x-aave)/astd_dev)**3)for x in temp])/(len(temp))
+    askew = sum([(x-aave)**3 for x in temp])/((len(temp) - 1)*astd_dev**3)
 
     ave.append(aave)        
     var.append(avar)
