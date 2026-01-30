@@ -19,12 +19,10 @@ def value_for_date_fast(data, dates, target_date):
     i = bisect.bisect_left(dates, target_date)
     return data[i][1] if i < len(data) and dates[i] == target_date else None
 
-
 # Generate date range indpendent of set coverage
-oneday = dt.timedelta(days=1)
-date_list = [dt.datetime(1990, 1, 1)] 
-while date_list[-1] != dt.datetime(2025, 12, 1):
-    date_list.append(date_list[-1]+oneday)
+date_list = pd.period_range("1990-01-01", "2025-12-31", freq="D")
+date_list = [pd.to_datetime(date, format="%Y-%m-%d") for date in date_list]
+
 
 # flatten all datasets, averages temp in accordance with standard practices (min-max)/2
 filedata = []
@@ -41,22 +39,25 @@ for file in os.listdir(folder):
     vals_min = [(x,y) for x,y in zip(dateobj_min, tmin["value"].tolist())]
     vals_max = [(x,y) for x,y in zip(dateobj_max, tmax["value"].tolist())]
     
-    date_list = []
+    tmp_date_list = []
     vals_list = []
     N = 0
     for date in dateobj:
         tmax_tmp = value_for_date_fast(vals_max, dateobj_max, date)
         tmin_tmp = value_for_date_fast(vals_min, dateobj_min, date)
         if tmin_tmp != None and tmax_tmp != None:
-            date_list.append(date)
+            #check for Nan
+            if math.isnan(tmax_tmp) or math.isnan(tmin_tmp):
+                breakpoint()
+            tmp_date_list.append(date)
             vals_list.append((tmax_tmp,tmin_tmp))
         else:
             if (tmin_tmp == None) ^ (tmax_tmp == None):
                N+=1
     day_ave = [((ma+mi)/2)/10 for ma, mi in vals_list] # divide by ten because data is stored as tenths of a degree C
-    tlist = [(date, temp) for date, temp in zip(date_list, day_ave)]
+    tlist = [(date, temp) for date, temp in zip(tmp_date_list, day_ave)]
     filedata.append(tlist)
-
+"""
 # From the total set of date-value pairs, select all values that correspond to every date and generate an average
 daily_ave = []
 daily_var = []
@@ -87,7 +88,7 @@ ohio_average_temp = {
     "stddev" : daily_dev,
     "skew" : daily_skew
 }
-
+"""
 # generate monthly average
 monthly_ave = []
 monthly_var = []
@@ -97,6 +98,7 @@ month_date = []
 curr_month = 1
 accum = []
 days = 0
+breakpoint()
 month_date.append(date_list[0])
 for i, date in enumerate(date_list):
     if not curr_month == date_list[i].month:
@@ -136,7 +138,7 @@ ohio_monthly_temp = {
     "stddev"  : monthly_dev,
     "skew"  : monthly_skew
 }
-
+"""
 ## generate singular daily average for representative year
 ave = []
 var = []
@@ -173,7 +175,7 @@ ohio_typical_year_temp = {
     "skew"  : skew
 }
 
-
+"""
 breakpoint()
 
 m_tmp = pd.DataFrame(ohio_monthly_temp)
